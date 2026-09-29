@@ -92,6 +92,7 @@ open /Applications/iQualize.app
 - Input gain (±24 dB) — pre-EQ level control for proper gain staging
 - Output gain (±24 dB) — post-EQ level control, applied before the peak limiter
 - In/Out dB can be shared globally across all presets, or set per-preset — toggle in Settings → General (see Presets and Settings below)
+- EQ Amount (0–100%) — one slider in the bottom bar scales every band's boost and cut toward flat, so you can dial a preset back without touching its bands. The curve shows what you hear, with the full-strength curve dashed behind it; double-click the slider to return to 100%. It's a global listening setting, never saved into a preset. Pass and notch filters have no gain, so they aren't affected
 - Dynamic peak limiter (AUPeakLimiter) — prevents digital clipping at 0 dBFS
 - Only changed parameter values are written to the audio unit — no audible glitches on slider drags
 

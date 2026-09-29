@@ -2,6 +2,11 @@
 
 All notable changes to iQualize will be documented in this file.
 
+## [0.61.0] - 2026-09-29
+
+### Added
+- EQ Amount slider in the EQ window's bottom bar: scales every band's gain from 100% (the preset as designed) down to 0% (flat) without editing the bands. The graph draws the resulting curve with the full-strength curve dashed behind it, and double-clicking the slider resets it to 100%. The setting is global, persists across launches, and never marks the preset as modified.
+
 ## [0.60.1] - 2026-08-17
 
 ### Fixed

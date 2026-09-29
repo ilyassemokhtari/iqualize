@@ -34,8 +34,16 @@ struct DreamFooter: View {
                 Spacer()
             }
 
-            // Row 3 — output device, centered beneath the controls.
-            outputLabel
+            // Row 3 — output device, centered beneath the controls, with the EQ
+            // amount on the leading edge (rows 1 and 2 are full at the window's
+            // minimum width).
+            ZStack {
+                outputLabel
+                HStack {
+                    intensitySlider
+                    Spacer()
+                }
+            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
@@ -156,6 +164,35 @@ struct DreamFooter: View {
         }
     }
 
+    /// Scales the whole EQ curve toward flat without touching the bands themselves.
+    @ViewBuilder
+    private var intensitySlider: some View {
+        HStack(spacing: 8) {
+            Text("EQ Amount:")
+                .font(.system(size: 11))
+                .foregroundStyle(theme.textMute)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+            DreamSlider(
+                value: Binding(
+                    get: { Double(vm.eqIntensity) },
+                    set: { setEQIntensity(Float($0)) }
+                ),
+                range: 0...1,
+                step: 0.01,
+                width: 110,
+                onDoubleClick: { setEQIntensity(1) }
+            )
+            Text(formatPercent(vm.eqIntensity))
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundStyle(theme.textDim)
+                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+                .frame(minWidth: 34, alignment: .leading)
+        }
+        .help("Scales every band's boost or cut toward flat, without editing the bands. 100% plays the preset as designed. Double-click to reset.")
+    }
+
     // MARK: - Segments
 
     @ViewBuilder
@@ -223,6 +260,17 @@ struct DreamFooter: View {
         if abs(v) < 0.01 { return "0" }
         let pct = Int(round(abs(v) * 100))
         return v < 0 ? "L\(pct)" : "R\(pct)"
+    }
+
+    private func formatPercent(_ v: Float) -> String {
+        "\(Int((v * 100).rounded()))%"
+    }
+
+    private func setEQIntensity(_ value: Float) {
+        let clamped = value.clamped(to: EQIntensity.range)
+        guard clamped != vm.eqIntensity else { return }
+        vm.eqIntensity = clamped
+        vm.applyEQIntensity()
     }
 
     private func setBalance(_ value: Float) {

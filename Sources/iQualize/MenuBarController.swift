@@ -66,6 +66,7 @@ final class MenuBarController: NSObject, NSMenuDelegate, CLICommandHandling {
         audioEngine.maxGainDB = settings.state.maxGainDB
         audioEngine.bypassed = settings.state.bypassed
         audioEngine.balance = settings.state.balance
+        audioEngine.eqIntensity = settings.state.eqIntensity
         if settings.state.linkGainGlobally {
             audioEngine.inputGainDB = settings.state.inputGainDB
             audioEngine.outputGainDB = settings.state.outputGainDB

@@ -66,6 +66,7 @@ final class DreamViewModel {
     var outGainDB: Float = 0
     var gainIsGlobal: Bool = false
     var balance: Float = 0
+    var eqIntensity: Float = 1
     var autoScale: Bool = true
     var maxGainDB: Float = 12
     var preEqLineColor: Color = Color(nsColor: .systemCyan)
@@ -137,6 +138,7 @@ final class DreamViewModel {
         preEqEnabled = s.preEqSpectrumEnabled
         postEqEnabled = s.postEqSpectrumEnabled
         balance = s.balance
+        eqIntensity = s.eqIntensity
         inGainDB = s.inputGainDB
         outGainDB = s.outputGainDB
         gainIsGlobal = s.linkGainGlobally
@@ -972,6 +974,13 @@ final class DreamViewModel {
     func applyBalance() {
         audioEngine.balance = balance
         persistFooterToggles()
+    }
+
+    /// Global, not per-preset — like balance, it's a listening preference that
+    /// never dirties or rewrites the active preset.
+    func applyEQIntensity() {
+        audioEngine.eqIntensity = eqIntensity
+        settings.set(\.eqIntensity, eqIntensity)
     }
 
     func applyChannelChange() {

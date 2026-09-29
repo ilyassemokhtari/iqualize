@@ -302,14 +302,30 @@ struct EQCanvasView: View {
             ctx.stroke(line, with: .color(Color(rgba: 0x60a5fa, a: strokeAlpha)), lineWidth: isSel ? 1.2 : 0.7)
         }
 
-        // Composite EQ curve
+        // Composite EQ curve — what's actually rendered, i.e. with the global EQ amount
+        // applied. Knobs and per-band ghosts stay at the designed gains so they remain
+        // editable; below 100% a dashed line keeps the designed curve as a reference.
         let sampleN = 280
+        let showDesignedCurve = vm.eqIntensity < EQIntensity.range.upperBound
+        let heardBands = dispBands.map { EQIntensity.scaled($0, by: vm.eqIntensity) }
         var samples: [CGPoint] = []
+        var designedSamples: [CGPoint] = []
         for i in 0...sampleN {
             let x = CGFloat(i) / CGFloat(sampleN) * W
             let f = xToFreq(x, W: W)
-            let total = dispBands.reduce(0.0) { $0 + bandResponseDB(f: f, band: $1) }
+            let total = heardBands.reduce(0.0) { $0 + bandResponseDB(f: f, band: $1) }
             samples.append(CGPoint(x: x, y: gainToY(total, H: H, maxDB: displayMax)))
+            if showDesignedCurve {
+                let designed = dispBands.reduce(0.0) { $0 + bandResponseDB(f: f, band: $1) }
+                designedSamples.append(CGPoint(x: x, y: gainToY(designed, H: H, maxDB: displayMax)))
+            }
+        }
+        if showDesignedCurve {
+            ctx.stroke(
+                smoothPath(pts: designedSamples),
+                with: .color(theme.accent2.opacity(0.45)),
+                style: StrokeStyle(lineWidth: 1.2, lineJoin: .round, dash: [4, 4])
+            )
         }
         let zero = gainToY(0, H: H, maxDB: displayMax)
         let compositeFill = smoothClosedPath(pts: samples, baselineY: zero)

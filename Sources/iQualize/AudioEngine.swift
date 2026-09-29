@@ -390,6 +390,16 @@ final class AudioEngine {
         didSet { updateBalance() }
     }
 
+    /// Global EQ amount, 0...1 (see `EQIntensity`). Goes through the same
+    /// changed-params-only path as a band edit, so only gains are re-sent and
+    /// filter state is kept — dragging it doesn't glitch.
+    var eqIntensity: Float = 1.0 {
+        didSet {
+            guard eqIntensity != oldValue else { return }
+            applyBands(from: activePreset, previousIntensity: oldValue)
+        }
+    }
+
     var splitChannelActive: Bool = false {
         didSet { applyBands() }
     }
@@ -817,9 +827,10 @@ final class AudioEngine {
     /// the stored value is preserved so muting is non-destructive (needed for CLI mute,
     /// which has no second, un-muted copy of the bands the way the GUI's own
     /// `pushBandsToEngine` does by zeroing `.gain` in a transient copy while keeping the
-    /// real value in `DreamViewModel.bands`).
-    private func effectiveGain(_ band: EQBand) -> Float {
-        band.muted ? 0 : band.gain
+    /// real value in `DreamViewModel.bands`). An unmuted band's gain is scaled by the
+    /// global `eqIntensity`, or by `intensity` when comparing against a previous value.
+    private func effectiveGain(_ band: EQBand, intensity: Float? = nil) -> Float {
+        band.muted ? 0 : EQIntensity.scaledGain(band.gain, by: intensity ?? eqIntensity)
     }
 
     private func withEffectiveGain(_ bands: [EQBand]) -> [EQBand] {
@@ -850,9 +861,10 @@ final class AudioEngine {
         }
     }
 
-    private func applyBands(from old: EQPresetData? = nil) {
+    private func applyBands(from old: EQPresetData? = nil, previousIntensity: Float? = nil) {
         guard let eq else { return }
         let resetState = old.map { $0.id != activePreset.id } ?? false
+        let oldIntensity = previousIntensity ?? eqIntensity
 
         if splitChannelActive && !bypassed {
             // Split channel mode: bypass AVAudioUnitEQ, use custom biquad chains
@@ -890,7 +902,7 @@ final class AudioEngine {
                     // Existing band — only update changed params
                     if band.filterType != oldBand.filterType { eqBand.filterType = band.filterType.avType }
                     if band.frequency != oldBand.frequency { eqBand.frequency = band.frequency }
-                    if effectiveGain(band) != effectiveGain(oldBand) { eqBand.gain = effectiveGain(band) }
+                    if effectiveGain(band) != effectiveGain(oldBand, intensity: oldIntensity) { eqBand.gain = effectiveGain(band) }
                     if band.bandwidth != oldBand.bandwidth { eqBand.bandwidth = band.bandwidth }
                 }
             }

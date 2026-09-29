@@ -71,6 +71,7 @@ final class SettingsStoreTests: XCTestCase {
         XCTAssertTrue(store.state.captureEnabled)
         XCTAssertTrue(store.state.peakLimiter)
         XCTAssertEqual(store.state.selectedPresetID, EQPresetData.flat.id)
+        XCTAssertEqual(store.state.eqIntensity, 1.0)
     }
 
     /// The documented `captureEnabled` naming rationale: legacy blobs carry an
@@ -183,6 +184,7 @@ final class SettingsStoreTests: XCTestCase {
         state.dreamTheme = "light"
         state.snapToSemitone = true
         state.zoomRange = "bass"
+        state.eqIntensity = 0.4
         try seed(state)
 
         let store = SettingsStore(userDefaults: defaults)
@@ -219,6 +221,7 @@ final class SettingsStoreTests: XCTestCase {
         store.set(\.dreamTheme, "dark")
         store.set(\.snapToSemitone, true)
         store.set(\.zoomRange, "treble")
+        store.set(\.eqIntensity, 0.65)
 
         // A fresh store over the same defaults sees the identical state.
         let reloaded = SettingsStore(userDefaults: defaults)
@@ -237,7 +240,7 @@ final class SettingsStoreTests: XCTestCase {
             "postEqSpectrumEnabled", "hideFromDock", "startAtLogin", "balance",
             "splitChannelEnabled", "inputGainDB", "outputGainDB",
             "linkGainGlobally", "showBandwidthAsQ", "preEqFillEnabled",
-            "postEqFillEnabled", "snapToSemitone",
+            "postEqFillEnabled", "snapToSemitone", "eqIntensity",
         ]
         // Optional nil fields are omitted by JSONEncoder; assert the
         // non-optional keys are all present under their exact names.
@@ -275,5 +278,6 @@ extension iQualizeState: Swift.Equatable {
             && lhs.dreamTheme == rhs.dreamTheme
             && lhs.snapToSemitone == rhs.snapToSemitone
             && lhs.zoomRange == rhs.zoomRange
+            && lhs.eqIntensity == rhs.eqIntensity
     }
 }

@@ -100,6 +100,29 @@ extension Comparable {
     }
 }
 
+// MARK: - EQ Intensity
+
+/// A global amount for the whole EQ curve: every band's gain is multiplied by it
+/// before it reaches the DSP, so 1 plays the preset as designed and 0 flattens it.
+/// Only gain is scaled — pass and notch filters carry no gain and are unaffected.
+/// The stored bands are never rewritten, so presets keep their designed values.
+enum EQIntensity {
+    static let range: ClosedRange<Float> = 0...1
+
+    /// A non-finite intensity (e.g. a corrupt persisted value) falls back to full
+    /// strength rather than propagating NaN into the filter coefficients.
+    static func scaledGain(_ gain: Float, by intensity: Float) -> Float {
+        guard intensity.isFinite else { return gain }
+        return gain * intensity.clamped(to: range)
+    }
+
+    static func scaled(_ band: EQBand, by intensity: Float) -> EQBand {
+        var b = band
+        b.gain = scaledGain(band.gain, by: intensity)
+        return b
+    }
+}
+
 // MARK: - EQ Preset Data
 
 struct EQPresetData: Codable, Equatable, Sendable, Identifiable {
